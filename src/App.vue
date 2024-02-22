@@ -41,7 +41,8 @@
     </div>
     <button @click="genererPDF">Générer un PDF</button>
     
-     
+    <hr>
+
 
       <div v-for="weather in weatherData" :key="weather.id">
         <h1 class="name">{{ weather.name }}</h1>
@@ -58,14 +59,15 @@
         </div>  
       </div>
     </div>
-      <div class="lines" >
-        <canvas id="line" height="500" ></canvas>
-      </div>
-      <div class="Bares" >
-        <canvas id="bar" height="500" ></canvas>
-      </div>
-
-
+    <hr>
+    <div class="lines" >
+      <canvas id="line" height="500" ></canvas>
+    </div>
+    <div class="Bares" >
+      <canvas id="bar" height="500" ></canvas>
+    </div>
+    <hr>
+    <div id="chartdiv" style="width: 100%; height: 300px;"></div>
       
 
   </div>
@@ -76,6 +78,10 @@ import axios from 'axios'
 import  html2pdf  from 'html2pdf.js'
 import Chart from "chart.js/auto"
 import 'chartjs-adapter-date-fns'
+
+import * as am4core from '@amcharts/amcharts4/core'
+import * as am4charts from '@amcharts/amcharts4/charts'
+import am4theme_animated from '@amcharts/amcharts4/themes/animated'
 
 
 
@@ -96,7 +102,9 @@ export default {
     }
   },
   mounted(){
+    am4core.useTheme(am4theme_animated)
     this.getweather()
+    
   },
   methods:{
       
@@ -132,6 +140,7 @@ export default {
               this.weatherData = res.data
               this.humidityChart()
               this.tempChart()
+              this.Am4Chart()
             }
             
           })
@@ -277,6 +286,33 @@ export default {
           }
         })
       },
+      Am4Chart(){
+        
+        let chart = am4core.create("chartdiv",am4charts.XYChart)
+        const humidityData = this.weatherData.list.map(weather => weather.main.humidity)
+        const date = this.weatherData.list.map(weather_dt => weather_dt.dt_txt)
+        let chartData = []
+
+        for(let i = 0; i < humidityData.length; i++){
+          chartData.push({Humidite:humidityData[i], Dates: date[i]})
+        }
+
+        chart.data = chartData
+
+        let HumidityAxis = chart.yAxes.push(new am4charts.ValueAxis())
+        HumidityAxis.title.text = "Humidité (%)"
+
+        let DateAxis = chart.xAxes.push(new am4charts.DateAxis())
+        DateAxis.title.text = "Date"
+        DateAxis.renderer.minGridDistance = 50;
+
+        let series = chart.series.push(new am4charts.ColumnSeries())
+        series.dataFields.dateX = "Dates"
+        series.dataFields.valueY  = "Humidite"
+
+        chart.cursor = new am4charts.XYCursor()
+
+      }
       
       
       
