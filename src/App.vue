@@ -68,6 +68,15 @@
     </div>
     <hr>
     <div id="chartdiv" style="width: 100%; height: 300px;"></div>
+
+    <hr>
+    <hr>
+    <hr>
+    <br>
+
+    <div class="termique">
+      <div id="chartTherm"></div>
+    </div>
       
 
   </div>
@@ -82,6 +91,8 @@ import 'chartjs-adapter-date-fns'
 import * as am4core from '@amcharts/amcharts4/core'
 import * as am4charts from '@amcharts/amcharts4/charts'
 import am4theme_animated from '@amcharts/amcharts4/themes/animated'
+
+import ApexCharts from 'apexcharts'
 
 
 
@@ -141,6 +152,7 @@ export default {
               this.humidityChart()
               this.tempChart()
               this.Am4Chart()
+              this.Thermique()
             }
             
           })
@@ -192,6 +204,16 @@ export default {
       const dateTime = new Date(dtTxt);
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZoneName: 'short' };
       return dateTime.toLocaleString('fr-FR', options);
+      },
+      formatDateTimeDay(dtTxt){ //Uniquement le jour
+        const dateTime = new Date(dtTxt);
+        const options = { weekday: 'long' }; // Seule l'option 'weekday' est spécifiée
+        return dateTime.toLocaleString('fr-FR', options);
+      },
+      formatDateTimeHours(dtTxt){ //Uniquement l'heure
+        const dateTime = new Date(dtTxt);
+        const options = { hour: 'numeric', minute: 'numeric' }; // Seules les options 'hour' et 'minute' sont spécifiées
+        return dateTime.toLocaleString('fr-FR', options);
       },
       humidityChart(){
 
@@ -312,6 +334,114 @@ export default {
 
         chart.cursor = new am4charts.XYCursor()
 
+      },
+
+      Thermique(){
+        const Temp = this.weatherData.list.map(weather => this.convertor(weather.main.temp))
+        const Day = this.weatherData.list.map(weather => this.formatDateTimeDay(weather.dt_txt))
+        const Hours = this.weatherData.list.map(weather => this.formatDateTimeHours(weather.dt_txt))
+        console.log(Temp)
+        console.log(Hours)
+        console.log(Day)
+
+        const seriesData = []
+
+        const dayDataMap = {}
+
+        Day.forEach((day,index)=>{
+          const hour = Hours[index]
+          const temp = Temp[index]
+
+          if (!dayDataMap[day]) {
+            dayDataMap[day] = []
+          }
+
+          dayDataMap[day].push({
+            x: hour,
+            y: temp
+          })
+
+        })
+
+        for(const day in dayDataMap){
+          seriesData.push({
+            name: day,
+            data: dayDataMap[day]
+          })
+        }
+
+        // Day.forEach((day)=>{
+        //   const dayData = []
+        //   Hours.forEach((hour,i)=>{
+        //     if (Day[i] === day) {
+        //       dayData.push({
+        //         x: hour,
+        //         y: Temp[i]
+        //       })
+        //     }
+        //   })
+        //   seriesData.push({
+        //     name: day,
+        //     data: dayData
+        //   })
+        // })
+        
+        const options = {
+          
+          chart:{
+            height:600,
+            width:'100%',
+            type:'heatmap'
+          },
+          plotOptions: {
+            heatmap: {
+              shadeIntensity: 0.5,
+              radius: 0,
+              useFillColorAsStroke: false,
+              colorScale: {
+                ranges: [
+                  {
+                    from: -30,
+                    to: 5,
+                    name: 'basse',
+                    color: '#00A100'
+                  },
+                  {
+                    from: 6,
+                    to: 20,
+                    name: 'modérée',
+                    color: '#128FD9'
+                  },
+                  {
+                    from: 21,
+                    to: 45,
+                    name: 'élevée',
+                    color: '#FFB200'
+                  },
+                  {
+                    from: 46,
+                    to: Infinity,
+                    name: 'très élevée',
+                    color: '#FF0000'
+                  }
+                ]
+              }
+            }
+          },
+          series: seriesData,
+          dataLabels: {
+            enabled: false
+          },
+          stroke: {
+            width: 1
+          },
+          title: {
+            text: 'HeatMap Chart with Color Range Température'
+          },
+        }
+        const Chart = new ApexCharts(document.querySelector('#chartTherm'),options)
+        Chart.render()
+        
       }
       
       

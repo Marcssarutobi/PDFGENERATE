@@ -9,13 +9,15 @@
   },
   "dependencies": {
     "@amcharts/amcharts4": "^4.10.38",
+    "apexcharts": "^3.48.0",
     "axios": "^1.6.1",
     "chart.js": "^4.4.0",
     "chartjs-adapter-date-fns": "^3.0.0",
     "core-js": "^3.8.3",
     "html2pdf.js": "^0.10.1",
     "pdfmake": "^0.2.8",
-    "vue": "^3.2.13"
+    "vue": "^3.2.13",
+    "vue3-apexcharts": "^1.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
